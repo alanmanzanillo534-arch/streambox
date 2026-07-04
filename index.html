@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Streaming Hub Premium - Animado</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #0a0a0c;
+            --card-bg: #13131a;
+            --accent-color: #E50914;
+            --text-main: #ffffff;
+            --text-muted: #9ca3af;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #0a0a0c, #140406, #050b14, #0a0a0c);
+            background-size: 400% 400%;
+            animation: streamingBgAnimation 20s ease infinite;
+            font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            color: var(--text-main);
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        @keyframes streamingBgAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        #particle-canvas {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1; 
+            opacity: 0.15; 
+            pointer-events: none;
+        }
+
+        /* NAVBAR ESTILO STREAMING */
+        .navbar {
+            position: fixed;
+            top: 0; left: 0; width: 100%;
+            box-sizing: border-box;
+            z-index: 10;
+            background: linear-gradient(to bottom, rgba(10,10,12,0.9) 0%, rgba(10,10,12,0) 100%);
+            backdrop-filter: blur(0px);
+            padding: 20px 5%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.4s ease;
+        }
+
+        .navbar.scrolled {
+            background-color: rgba(10, 10, 12, 0.95) !important;
+            backdrop-filter: blur(12px);
+            padding: 14px 5%;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .navbar .logo {
+            color: var(--accent-color);
+            font-size: 28px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+        }
+
+        .search-container {
+            display: flex;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px 16px;
+            border-radius: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .search-container:focus-within {
+            border-color: rgba(255, 255, 255, 0.3);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .search-container i { color: var(--text-muted); margin-right: 10px; }
+        .search-container input {
+            background: transparent; border: none; color: white;
+            outline: none; font-size: 14px; width: 240px;
+        }
+
+        /* BANNER DE ANUNCIOS SUPERIOR */
+        .ad-banner-top {
+            margin: 90px auto 0 auto;
+            text-align: center;
+            max-width: 728px;
+            background: #13131a;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px dashed rgba(255,255,255,0.1);
+            position: relative;
+            z-index: 6;
+        }
+
+        /* HERO INTERFAZ COMPLETA */
+        .hero {
+            position: relative;
+            height: 85vh;
+            background-size: cover;
+            background-position: center 15%;
+            display: flex;
+            align-items: center;
+            z-index: 4;
+        }
+
+        .hero-vignette {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to top, transparent 0%, rgba(10, 10, 12, 0.1) 50%, rgba(0,0,0,0) 100%),
+                        linear-gradient(to right, rgba(10, 10, 12, 0.9) 0%, rgba(10, 10, 12, 0.3) 60%, rgba(0,0,0,0) 100%);
+            z-index: 1;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            padding-left: 5%;
+            max-width: 680px;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hero-title {
+            font-size: 64px; margin-bottom: 15px; font-weight: 900;
+            line-height: 1.05; letter-spacing: -1px;
+        }
+
+        .hero-meta {
+            margin-bottom: 22px; font-size: 14px;
+            display: flex; align-items: center; gap: 14px;
+        }
+
+        .match-score { color: #10b981; font-weight: 700; background: rgba(16, 185, 129, 0.1); padding: 4px 8px; border-radius: 6px; }
+        .hero-extra-badge { color: var(--text-muted); font-weight: 500; }
+
+        .hero-description { font-size: 17px; line-height: 1.5; margin-bottom: 30px; color: #d1d5db; }
+
+        .hero-buttons { display: flex; gap: 14px; }
+        .hero-buttons button { 
+            padding: 14px 30px; font-size: 15px; font-weight: 700; 
+            border: none; border-radius: 8px; cursor: pointer; 
+            display: flex; align-items: center; gap: 10px; transition: all 0.2s ease;
+        }
+        
+        .btn-play { background-color: var(--text-main); color: #000; }
+        .btn-play:hover { background-color: #e5e7eb; transform: translateY(-2px); }
+        
+        .btn-info { background-color: rgba(255, 255, 255, 0.12); color: var(--text-main); backdrop-filter: blur(8px); }
+        .btn-info:hover { background-color: rgba(255, 255, 255, 0.2); transform: translateY(-2px); }
+
+        /* SECCIONES Y CONTENEDORES DE CONTENIDO */
+        .main-gallery {
+            position: relative;
+            z-index: 5;
+            background: transparent; 
+            padding-bottom: 80px;
+            margin-top: -40px;
+        }
+
+        .section-title { 
+            font-size: 22px; margin-left: 5%; margin-top: 45px; margin-bottom: 14px; 
+            font-weight: 800; color: var(--text-main); letter-spacing: -0.5px;
+        }
+        
+        .netflix-row { 
+            display: flex; gap: 16px; overflow-x: auto; 
+            padding: 10px 5% 30px 5%; scrollbar-width: none; 
+        }
+        .netflix-row::-webkit-scrollbar { display: none; }
+
+        /* TARJETAS PREMIUM MODO STREAMING */
+        .movie-card {
+            min-width: 220px; max-width: 220px;
+            background-color: rgba(19, 19, 26, 0.65); 
+            backdrop-filter: blur(8px);
+            border-radius: 12px; overflow: hidden; cursor: pointer;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.03);
+            transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .movie-card:hover { 
+            transform: scale(1.05) translateY(-8px); 
+            z-index: 8;
+            border-color: rgba(255,255,255,0.15);
+            background-color: rgba(19, 19, 26, 0.9);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+        }
+        
+        .movie-card img { width: 100%; height: 310px; object-fit: cover; display: block; }
+        
+        .card-metadata { padding: 16px; background: transparent; }
+        .card-title { font-size: 15px; font-weight: 700; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        .card-sub-row {
+            display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;
+        }
+        .card-badge {
+            background-color: rgba(255,255,255,0.08); padding: 2px 6px; font-size: 11px; border-radius: 4px; color: var(--text-muted);
+        }
+
+        .btn-votar-tarjeta {
+            width: 100%; padding: 10px; background-color: rgba(255,255,255,0.05); color: #fff; 
+            border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; cursor: pointer; 
+            font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px;
+            transition: all 0.2s ease;
+        }
+        .btn-votar-tarjeta:hover { background-color: rgba(255,255,255,0.1); }
+        .btn-votar-tarjeta.en-lista { background-color: rgba(16, 185, 129, 0.15); color: #10b981; border-color: #10b981; }
+
+        /* VENTANA MODAL STREAMING DETALLES */
+        .modal {
+            display: none; position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(5, 5, 7, 0.7);
+            z-index: 20; justify-content: center; align-items: center;
+            backdrop-filter: blur(20px);
+        }
+
+        .modal-content {
+            position: relative; width: 92%; max-width: 800px;
+            background-color: #111115; border-radius: 16px;
+            overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,0.8);
+            border: 1px solid rgba(255,255,255,0.06);
+            animation: modalStreamIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes modalStreamIn {
+            from { opacity: 0; transform: scale(0.96) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .modal-header-banner {
+            width: 100%; height: 340px; background-size: cover;
+            background-position: center 20%; position: relative;
+            display: flex; align-items: flex-end; padding: 30px; box-sizing: border-box;
+        }
+
+        .modal-banner-vignette {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to top, #111115 0%, rgba(17, 17, 21, 0.3) 60%, rgba(0,0,0,0.6) 100%);
+            z-index: 1;
+        }
+
+        .modal-header-actions { position: relative; z-index: 2; width: 100%; }
+        
+        .btn-modal-play {
+            padding: 14px 36px; font-size: 16px; font-weight: 700; 
+            background-color: var(--accent-color); color: #fff; border: none; 
+            border-radius: 8px; cursor: pointer; display: flex; align-items: center; 
+            gap: 10px; box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4); transition: all 0.2s ease;
+        }
+        .btn-modal-play:hover { background-color: #ff1f2d; transform: translateY(-2px); }
+
+        .modal-body-details {
+            padding: 30px; display: grid; grid-template-columns: 1.8fr 1.2fr; gap: 30px;
+            background-color: #111115;
+        }
+
+        .modal-info-left .modal-meta-row {
+            display: flex; align-items: center; gap: 14px; margin-bottom: 18px; font-size: 14px;
+        }
+
+        .modal-info-left .modal-synopsis {
+            font-size: 15px; line-height: 1.6; color: #9ca3af; margin: 0;
+        }
+
+        .modal-info-right {
+            font-size: 14px; color: #9ca3af; display: flex; flex-direction: column; gap: 12px;
+            background: rgba(255,255,255,0.02); padding: 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.04);
+        }
+
+        .modal-info-right span strong { color: var(--text-main); }
+
+        .close-btn {
+            position: absolute; top: 20px; right: 20px;
+            color: #fff; font-size: 20px; background: rgba(255,255,255,0.08);
+            width: 40px; height: 40px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; z-index: 25; transition: all 0.2s;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .close-btn:hover { background: rgba(255,255,255,0.2); transform: rotate(90deg); }
+
+        /* REPRODUCTOR COMPLETO */
+        .video-overlay {
+            display: none; position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #000; z-index: 30;
+        }
+
+        footer { 
+            background-color: rgba(5, 5, 7, 0.85); padding: 60px 5% 40px 5%; 
+            color: var(--text-muted); font-size: 14px; border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        .footer-links { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; max-width: 900px; margin-bottom: 30px;}
+        .footer-links a { color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
+        .footer-links a:hover { color: var(--text-main); }
+    </style>
+</head>
+<body>
+
+    <canvas id="particle-canvas"></canvas>
+
+    <!-- BARRA DE NAVEGACIÓN -->
+    <nav class="navbar">
+        <div class="logo" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">STREAMBOX</div>
+        <div class="search-container">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="input-buscador" placeholder="Buscar títulos, géneros o categorías...">
+        </div>
+    </nav>
+
+    <!-- BANNER DE MONETIZACIÓN SUPERIOR (RESPONSIVO) -->
+    <div class="ad-banner-top">
+        <span style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 4px; letter-spacing: 1px;">PUBLICIDAD</span>
+        <!-- Espacio listo para colocar el Script de Google AdSense o Adsterra -->
+        <div style="color: var(--text-muted); font-size: 13px; font-weight: 600;">Espacio Publicitario Monetizable Inteligente (728x90)</div>
+    </div>
+
+    <!-- HERO BANNER DESTACADO -->
+    <section id="hero-banner" class="hero">
+        <div class="hero-vignette"></div>
+        <div class="hero-content">
+            <h2 id="hero-titulo" class="hero-title">Cargando...</h2>
+            <div class="hero-meta">
+                <span id="hero-rating" class="match-score"></span>
+                <span id="hero-año" style="color: var(--text-main); font-weight: 600;"></span>
+                <span id="hero-extra" class="hero-extra-badge"></span>
+            </div>
+            <p id="hero-descripcion" class="hero-description"></p>
+            <div class="hero-buttons">
+                <button class="btn-play" id="hero-btn-play"><i class="fa-solid fa-play"></i> Ver Detalles</button>
+                <button class="btn-info" id="hero-btn-votar"><i class="fa-regular fa-thumbs-up"></i> Me gusta</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIONES DE CONTENIDO -->
+    <main class="main-gallery">
+        <div id="seccion-mi-lista-bloque" style="display: none;">
+            <h2 class="section-title"><i class="fa-solid fa-star" style="color: #f59e0b; margin-right: 8px;"></i> Mi Espacio Favorito</h2>
+            <div id="contenedor-mi-lista" class="netflix-row"></div>
+        </div>
+
+        <div id="seccion-peliculas-bloque">
+            <h2 class="section-title">Películas Recomendadas</h2>
+            <div id="contenedor-peliculas" class="netflix-row"></div>
+        </div>
+
+        <div id="seccion-series-bloque">
+            <h2 class="section-title">Series de TV Tendencia</h2>
+            <div id="contenedor-series" class="netflix-row"></div>
+        </div>
+    </main>
+
+    <!-- VENTANA EMERGENTE (MODAL) PREMIUM -->
+    <div id="modal-detalle" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="cerrarModalDetalle()"><i class="fa-solid fa-xmark"></i></span>
+            
+            <div id="modal-banner" class="modal-header-banner">
+                <div class="modal-banner-vignette"></div>
+                <div class="modal-header-actions">
+                    <button class="btn-modal-play" id="modal-btn-reproducir"><i class="fa-solid fa-play"></i> Reproducir Tráiler</button>
+                </div>
+            </div>
+
+            <div class="modal-body-details">
+                <div class="modal-info-left">
+                    <div class="modal-meta-row">
+                        <span id="modal-rating" class="match-score"></span>
+                        <span id="modal-año" style="color: var(--text-main); font-weight:600;"></span>
+                        <span id="modal-extra" style="color: var(--text-muted); font-size:14px;"></span>
+                    </div>
+                    <p id="modal-sinopsis" class="modal-synopsis"></p>
+                </div>
+                
+                <div class="modal-info-right">
+                    <span><strong>Título original:</strong> <span id="modal-info-titulo" style="color: white;"></span></span>
+                    <span><strong>Género:</strong> <span id="modal-info-genero" style="color: white;"></span></span>
+                    <span><strong>Formato:</strong> <span id="modal-info-tipo" style="color: white;"></span></span>
+                    
+                    <!-- CAPA DE MONETIZACIÓN DIRECTA VÍA AFILIADOS -->
+                    <hr style="border-color: rgba(255,255,255,0.05); margin: 15px 0;">
+                    <a id="btn-monetizar-afiliado" href="#" target="_blank" style="display: flex; align-items: center; justify-content: center; gap: 8px; background: linear-gradient(135deg, #ff9900, #ff5500); color: white; text-decoration: none; padding: 12px; border-radius: 8px; font-weight: 700; text-align: center; transition: transform 0.2s; box-shadow: 0 4px 12px rgba(255,85,0,0.2);">
+                        <i class="fa-solid fa-ticket"></i> Alquilar / Ver Completa
+                    </a>
+                </div>
+            </div>
+
+            <div id="video-overlay-player" class="video-overlay">
+                <span class="close-btn" onclick="detenerVideoInterno()" style="top: 20px; right: 20px;"><i class="fa-solid fa-arrow-left"></i> Volver</span>
+                <div id="contenedor-iframe-interno" style="width:100%; height:100%;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER INTERFAZ -->
+    <footer>
+        <div class="footer-links">
+            <a href="#">Centro de Ayuda</a>
+            <a href="#">Cuentas y Membresías</a>
+            <a href="#">Prensa</a>
+            <a href="#">Zonas de Cobertura</a>
+            <a href="#">Canjear Códigos</a>
+            <a href="#">Privacidad de Datos</a>
+            <a href="#">Contacto Técnico</a>
+        </div>
+        <div style="font-size: 13px; color: var(--text-muted);">© 2026 StreamBox Global Media Platform LLC.</div>
+    </footer>
+
+    <!-- SCRIPT DE PARTÍCULAS ORIGINAL -->
+    <script>
+        const canvas = document.getElementById('particle-canvas'); 
+        const ctx = canvas.getContext('2d'); 
+        canvas.width = window.innerWidth; 
+        canvas.height = window.innerHeight; 
+        let particlesArray = []; 
+        
+        function Particle(x, y, directionX, directionY, size) { 
+            this.x = x; 
+            this.y = y; 
+            this.directionX = directionX; 
+            this.directionY = directionY; 
+            this.size = size; 
+        } 
+        
+        Particle.prototype.draw = function() { 
+            ctx.beginPath(); 
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false); 
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.15)'; 
+            ctx.fill(); 
+        }; 
+        
+        Particle.prototype.update = function() { 
+            if (this.x + this.size > canvas.width || this.x - this.size < 0) this.directionX = -this.directionX; 
+            if (this.y + this.size > canvas.height || this.y - this.size < 0) this.directionY = -this.directionY; 
+            this.x += this.directionX; 
+            this.y += this.directionY; 
+            this.draw(); 
+        }; 
+        
+        function init() { 
+            particlesArray = []; 
+            let numberOfParticles = (canvas.height * canvas.width) / 35000; 
+            for (let i = 0; i < numberOfParticles; i++) { 
+                let size = (Math.random() * 1.5) + 0.5; 
+                let x = (Math.random() * ((innerWidth - size * 2) - (size * 2)) + size * 2); 
+                let y = (Math.random() * ((innerHeight - size * 2) - (size * 2)) + size * 2); 
+                let directionX = (Math.random() * 0.3) - 0.15; 
+                let directionY = (Math.random() * 0.3) - 0.15; 
+                particlesArray.push(new Particle(x, y, directionX, directionY, size)); 
+            } 
+        } 
+        
+        function animate() { 
+            requestAnimationFrame(animate); 
+            ctx.clearRect(0, 0, innerWidth, innerHeight); 
+            for (let i = 0; i < particlesArray.length; i++) { 
+                particlesArray[i].update(); 
+            } 
+        } 
+        
+        window.addEventListener('resize', function() { 
+            canvas.width = innerWidth; 
+            canvas.height = innerHeight; 
+            init(); 
+        }); 
+        
+        init(); 
+        animate();
+    </script>
+    <script src="script.js"></script>
+</body>
+</html>
