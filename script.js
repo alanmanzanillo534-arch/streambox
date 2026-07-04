@@ -1,5 +1,5 @@
 // CONFIGURACIÓN CENTRAL DE LA API (TMDB)
-const API_KEY = 'YOUR_API_KEY_HERE'; // Reemplaza esto con tu API Key real de TMDB
+const API_KEY = '3b16c961cf16815cd9f77b43e5bb74e5; 
 const BASE_URL = 'https://api.themoviedb.org/3';
 const IMG_URL = 'https://image.tmdb.org/t/p/w500';
 const BACKDROP_URL = 'https://image.tmdb.org/t/p/original';
