@@ -252,32 +252,26 @@ function configurarBuscador() {
         }, 400);
     });
 }
-// Función estilo Magis TV para cargar y reproducir películas/series automáticamente
+// Asegúrate de que este código esté al final de tu script.js
 function activarReproductorMagis(id, tipo = 'movie') {
     const contenedorRepro = document.getElementById('contenedor-reproductor');
     const iframeRepro = document.getElementById('reproductor-video');
     
     if (contenedorRepro && iframeRepro) {
-        // Usamos un servidor embed estable que detecta el ID de TMDB
-        iframeRepro.src = `https://vidsrc.to/embed/${tipo}/${id}`;
+        // Servidor embed alternativo y muy estable
+        iframeRepro.src = `https://vidsrc.me/embed/${tipo}?tmdb=${id}`;
         
-        // Mostramos el reproductor en pantalla
+        // Mostramos el contenedor del reproductor
         contenedorRepro.style.display = 'block';
     }
 }
 
-// Para asegurarnos de que el video se detenga si el usuario cierra el modal
 function detenerReproductorMagis() {
     const contenedorRepro = document.getElementById('contenedor-reproductor');
     const iframeRepro = document.getElementById('reproductor-video');
     
     if (contenedorRepro && iframeRepro) {
-        iframeRepro.src = ''; // Vacía el video para que deje de sonar
-        contenedorRepro.style.display = 'none'; // Lo oculta
-    }
-}// Cierre del Modal por Interacción del Entorno
-window.onclick = function(event) {
-    if (event.target == modal) {
-        cerrarModalDetalle();
+        iframeRepro.src = ''; 
+        contenedorRepro.style.display = 'none'; 
     }
 }
