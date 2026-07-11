@@ -253,14 +253,16 @@ function configurarBuscador() {
     });
 }
 // Asegúrate de que este código esté al final de tu script.js
-function activarReproductorMagis(id, tipo = 'movie') {
+function activarReproductorMagis(id, tipo) {
+    const tipoContenido = tipo || 'movie'; 
     const contenedorRepro = document.getElementById('contenedor-reproductor');
     const iframeRepro = document.getElementById('reproductor-video');
     
     if (contenedorRepro && iframeRepro) {
-        // Servidor embed alternativo y muy estable
-iframeRepro.src = `https://player.autoembed.to/${tipo}/${id}`;
-        // Mostramos el contenedor del reproductor
+        // Usamos el servidor que sí acepta Safari sin bloqueos
+        iframeRepro.src = `https://player.autoembed.to/${tipoContenido}/${id}`;
+        
+        // Lo hacemos visible quitando el display none
         contenedorRepro.style.display = 'block';
     }
 }
