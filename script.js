@@ -146,8 +146,7 @@ async function abrirModalDetalle(id, tipo) {
         modalAño.textContent = new Date(item.release_date || item.first_air_date).getFullYear();
         modalExtra.textContent = tipo === 'movie' ? `${item.runtime || 0} min` : `${item.number_of_seasons || 0} Temp`;
         modalSinopsis.textContent = item.overview || "Sin descripción en español registrada en el servidor central.";
-        
-        modalInfoTitulo.textContent = item.original_title || item.original_name;
+        activarReproductorMagis(id, tipo);        modalInfoTitulo.textContent = item.original_title || item.original_name;
         modalInfoGenero.textContent = item.genres ? item.genres.map(g => g.name).join(', ') : 'Drama';
         modalInfoTipo.textContent = tipo === 'movie' ? 'Película' : 'Serie de TV';
 
@@ -161,7 +160,7 @@ async function abrirModalDetalle(id, tipo) {
 
         if (trailer) {
             modalBtnReproducir.style.display = 'flex';
-            modalBtnReproducir.onclick = () => reproducirVideo(trailer.key);
+            modalBtnReproducir.onclick = () => activarReproductorMagis(id, tipo);
         } else {
             modalBtnReproducir.style.display = 'none';
         }
@@ -175,7 +174,7 @@ async function abrirModalDetalle(id, tipo) {
 function cerrarModalDetalle() {
     modal.style.display = 'none';
     detenerVideoInterno();
-}
+    detenerReproductorMagis();}
 
 // Reproductor de Video Embebido Integrado
 function reproducirVideo(youtubeKey) {
@@ -253,8 +252,30 @@ function configurarBuscador() {
         }, 400);
     });
 }
+// Función estilo Magis TV para cargar y reproducir películas/series automáticamente
+function activarReproductorMagis(id, tipo = 'movie') {
+    const contenedorRepro = document.getElementById('contenedor-reproductor');
+    const iframeRepro = document.getElementById('reproductor-video');
+    
+    if (contenedorRepro && iframeRepro) {
+        // Usamos un servidor embed estable que detecta el ID de TMDB
+        iframeRepro.src = `https://vidsrc.to/embed/${tipo}/${id}`;
+        
+        // Mostramos el reproductor en pantalla
+        contenedorRepro.style.display = 'block';
+    }
+}
 
-// Cierre del Modal por Interacción del Entorno
+// Para asegurarnos de que el video se detenga si el usuario cierra el modal
+function detenerReproductorMagis() {
+    const contenedorRepro = document.getElementById('contenedor-reproductor');
+    const iframeRepro = document.getElementById('reproductor-video');
+    
+    if (contenedorRepro && iframeRepro) {
+        iframeRepro.src = ''; // Vacía el video para que deje de sonar
+        contenedorRepro.style.display = 'none'; // Lo oculta
+    }
+}// Cierre del Modal por Interacción del Entorno
 window.onclick = function(event) {
     if (event.target == modal) {
         cerrarModalDetalle();
