@@ -259,8 +259,7 @@ function activarReproductorMagis(id, tipo = 'movie') {
     
     if (contenedorRepro && iframeRepro) {
         // Servidor embed alternativo y muy estable
-        iframeRepro.src = `https://vidsrc.me/embed/${tipo}?tmdb=${id}`;
-        
+iframeRepro.src = `https://player.autoembed.to/${tipo}/${id}`;
         // Mostramos el contenedor del reproductor
         contenedorRepro.style.display = 'block';
     }
